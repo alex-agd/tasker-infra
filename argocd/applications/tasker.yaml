@@ -3,10 +3,12 @@ kind: Application
 metadata:
   name: tasker
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: https://alex-agd.github.io/tasker-infra/
+    repoURL: https://github.com/Alex-AGD/tasker-infra
     path: helm/tasker
     targetRevision: HEAD
     helm:
@@ -21,3 +23,9 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

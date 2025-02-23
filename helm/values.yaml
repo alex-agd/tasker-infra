@@ -7,8 +7,8 @@ labels:
   app.kubernetes.io/part-of: tasker-platform
 
 image:
-  repository: your-registry/tasker-app
-  tag: latest
+  repository: ghcr.io/alex-agd.github.io/tasker-infra
+  tag: ""
   pullPolicy: IfNotPresent
   pullSecrets: []
 
