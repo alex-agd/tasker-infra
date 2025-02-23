@@ -1,23 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: tasker
+  name: tasker-monitoring
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://alex-agd.github.io/tasker-infra/
-    path: helm/tasker
+    path: monitoring
     targetRevision: HEAD
-    helm:
-      valueFiles:
-        - values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: tasker
+    namespace: monitoring
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true

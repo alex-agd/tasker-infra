@@ -1,14 +1,17 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "tasker-app.fullname" . }}-config
-  labels:
-    {{- include "tasker-app.labels" . | nindent 4 }}
+  name: tasker-config
+  namespace: { { .Release.Namespace } }
 data:
-  application.properties: |
-    spring.profiles.active={{ .Values.config.SPRING_PROFILES_ACTIVE }}
-    spring.datasource.url={{ .Values.config.SPRING_DATASOURCE_URL }}
-    spring.datasource.username={{ .Values.config.SPRING_DATASOURCE_USERNAME }}
-    spring.datasource.password={{ .Values.config.SPRING_DATASOURCE_PASSWORD }}
-    management.endpoints.web.exposure.include=health,metrics,prometheus
-    management.endpoint.health.show-details=always
+  application.yml: |
+    spring:
+      datasource:
+        url: jdbc:postgresql://{{ .Values.database.host }}:5432/{{ .Values.database.name }}
+        username: ${DB_USER}
+        password: ${DB_PASSWORD}
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,metrics,prometheus
