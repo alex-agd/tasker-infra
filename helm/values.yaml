@@ -1,0 +1,107 @@
+# Application Configuration
+nameOverride: ""
+fullnameOverride: ""
+
+labels:
+  app.kubernetes.io/component: backend
+  app.kubernetes.io/part-of: tasker-platform
+
+image:
+  repository: your-registry/tasker-app
+  tag: latest
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+  annotations: {}
+  labels: {}
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: tasker.k8s-5.sa
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: tasker-tls
+      hosts:
+        - tasker.k8s-5.sa
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+postgresql:
+  enabled: true
+  auth:
+    username: postgres
+    password: postgres
+    database: tasker_db
+    existingSecret: ""
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "standard"
+      size: 1Gi
+      accessModes:
+        - ReadWriteOnce
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 15s
+
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+    scrapeTimeout: 14s
+    namespace: monitoring
+    labels:
+      release: prometheus
+  grafana:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      folder: /var/lib/grafana/dashboards/tasker
+      metrics:
+        - jvm_memory_used_bytes
+        - process_cpu_usage
+        - http_server_requests_seconds_count
+        - system_cpu_usage
+        - jvm_gc_pause_seconds_count
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+config:
+  SPRING_PROFILES_ACTIVE: prod
+  SPRING_DATASOURCE_URL: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/tasker_db

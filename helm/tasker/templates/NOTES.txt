@@ -1,0 +1,27 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To get the application URL, run these commands:
+{{- if .Values.ingress.enabled }}
+  http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.hosts.host }}
+{{- else if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "tasker-app.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+  Watch the status with: 'kubectl get svc --namespace {{ .Release.Namespace }} -w {{ include "tasker-app.fullname" . }}'
+{{- else if contains "ClusterIP" .Values.service.type }}
+  kubectl port-forward svc/{{ include "tasker-app.fullname" . }} 8080:{{ .Values.service.port }}
+  echo "Visit http://localhost:8080 to access your application"
+{{- end }}
+
+Monitoring URLs:
+{{- if .Values.monitoring.enabled }}
+  Prometheus metrics: http://{{ .Values.ingress.hosts.host }}/actuator/prometheus
+  Grafana dashboards: Check your Grafana installation for imported dashboards
+{{- end }}
+
+For more information about the deployment, run:
+  kubectl --namespace {{ .Release.Namespace }} get all -l "app.kubernetes.io/instance={{ .Release.Name }}" 

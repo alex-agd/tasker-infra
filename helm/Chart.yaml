@@ -1,0 +1,14 @@
+apiVersion: v2
+name: tasker-app
+description: A Helm chart for Tasker Application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: "AlexAGD"
+    email: "aliaksei.dalhapolau@gmail.com"
+dependencies:
+  - name: postgresql
+    version: "12.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled

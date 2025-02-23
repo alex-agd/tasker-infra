@@ -1,0 +1,15 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.grafana.dashboards.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tasker-app.fullname" . }}-grafana-dashboard
+  labels:
+    {{- include "tasker-app.labels" . | nindent 4 }}
+    grafana_dashboard: "true"
+data:
+  {{- $files := .Files }}
+  {{- range $path, $_ := .Files.Glob "dashboards/application/*.json" }}
+  {{ base $path }}: |-
+    {{- $files.Get $path | nindent 4 }}
+  {{- end }}
+{{- end }} 

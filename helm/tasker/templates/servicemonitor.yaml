@@ -1,0 +1,21 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "tasker-app.fullname" . }}
+  labels:
+    {{- include "tasker-app.labels" . | nindent 4 }}
+spec:
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout }}
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: (jvm_memory_used_bytes|process_cpu_usage|http_server_requests_seconds_count|system_cpu_usage|jvm_gc_pause_seconds_count)
+          action: keep
+  selector:
+    matchLabels:
+      {{- include "tasker-app.selectorLabels" . | nindent 6 }}
+{{- end }} 
