@@ -23,8 +23,7 @@ jobs:
 
       - name: Add bitnami repo
         run: |
-          helm repo remove bitnami || true  # Удаляем если существует
-          helm repo add bitnami oci://registry-1.docker.io/bitnamicharts
+          helm repo add bitnami https://charts.bitnami.com/bitnami --force-update
           helm repo update
 
       - name: Validate Helm Chart
