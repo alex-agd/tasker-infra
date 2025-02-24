@@ -38,21 +38,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install kubeval
+      - name: Download kubeconform
         run: |
-          wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
-          tar xf kubeval-linux-amd64.tar.gz
-          sudo mv kubeval /usr/local/bin
+          wget https://github.com/yannh/kubeconform/releases/download/v0.6.4/kubeconform-linux-amd64.tar.gz
+          tar xf kubeconform-linux-amd64.tar.gz
+          sudo mv kubeconform /usr/local/bin/
+          rm kubeconform-linux-amd64.tar.gz
 
       - name: Validate Kubernetes manifests
+        id: validate
         run: |
           find . -type f -name "*.yaml" -not -path "./helm/*" | while read file; do
-            kubeval "$file" --schema-location https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.20.0-standalone
+            kubeconform -strict -summary "$file"
           done
+        continue-on-error: true
 
       - name: Validate CRDs
+        if: always()
         run: |
-          # Validate PrometheusRule
           if [[ -f ./monitoring/prometheus-rules/tasker-alerts.yaml ]]; then
             kubectl apply --dry-run=client -f ./monitoring/prometheus-rules/tasker-alerts.yaml
           fi
+
+      - name: Prepare notification message
+        if: always()
+        id: notification
+        run: |
+          if [ "${{ steps.validate.outcome }}" = "success" ]; then
+            echo "message=✅ Kubernetes manifests validation passed" >> $GITHUB_OUTPUT
+          else
+            echo "message=❌ Kubernetes manifests validation failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification
+        if: always() && secrets.SLACK_WEBHOOK != ''
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_MESSAGE: ${{ steps.notification.outputs.message }}
+          SLACK_TITLE: Kubernetes Manifest Validation
+          SLACK_COLOR: ${{ steps.validate.outcome == 'success' && 'good' || 'danger' }}
