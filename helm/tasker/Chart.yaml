@@ -4,6 +4,7 @@ description: A Helm chart for Tasker Application
 type: application
 version: 0.1.0
 appVersion: "1.0.0"
+icon: assets/icon.svg
 maintainers:
   - name: "AlexAGD"
     email: "aliaksei.dalhapolau@gmail.com"
