@@ -45,6 +45,18 @@ jobs:
           sudo mv kubeconform /usr/local/bin/
           rm kubeconform-linux-amd64.tar.gz
 
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "latest"
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.8.0
+
+      - name: Install prometheus-operator CRDs
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+
       - name: Validate Kubernetes manifests
         id: validate
         run: |
