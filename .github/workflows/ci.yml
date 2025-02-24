@@ -47,5 +47,12 @@ jobs:
       - name: Validate Kubernetes manifests
         run: |
           find . -type f -name "*.yaml" -not -path "./helm/*" | while read file; do
-            kubeval "$file"
+            kubeval "$file" --schema-location https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.20.0-standalone
           done
+
+      - name: Validate CRDs
+        run: |
+          # Validate PrometheusRule
+          if [[ -f ./monitoring/prometheus-rules/tasker-alerts.yaml ]]; then
+            kubectl apply --dry-run=client -f ./monitoring/prometheus-rules/tasker-alerts.yaml
+          fi
