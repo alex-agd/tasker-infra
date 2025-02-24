@@ -21,10 +21,17 @@ jobs:
         with:
           version: "latest"
 
+      - name: Add bitnami repo
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
       - name: Validate Helm Chart
         run: |
-          helm lint helm/tasker
-          helm template helm/tasker
+          cd helm/tasker
+          helm dependency update
+          helm lint .
+          helm template .
 
   validate-k8s:
     runs-on: ubuntu-latest
