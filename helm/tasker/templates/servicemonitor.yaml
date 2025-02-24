@@ -3,8 +3,12 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ include "tasker-app.fullname" . }}
+  namespace: {{ .Values.monitoring.serviceMonitor.namespace }}
   labels:
     {{- include "tasker-app.labels" . | nindent 4 }}
+    {{- with .Values.monitoring.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   endpoints:
     - port: http
@@ -12,7 +16,7 @@ spec:
       interval: {{ .Values.monitoring.serviceMonitor.interval }}
       scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout }}
       metricRelabelings:
-        - sourceLabels: [__name__]
+        - sourceLabels: [ __name__ ]
           regex: (jvm_memory_used_bytes|process_cpu_usage|http_server_requests_seconds_count|system_cpu_usage|jvm_gc_pause_seconds_count)
           action: keep
   selector:
