@@ -23,11 +23,7 @@ jobs:
 
       - name: Add bitnami repo
         run: |
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo update
-
-      - name: Add helm repos
-        run: |
+          helm repo remove bitnami || true  # Удаляем если существует
           helm repo add bitnami oci://registry-1.docker.io/bitnamicharts
           helm repo update
 
