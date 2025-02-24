@@ -46,19 +46,15 @@ postgresql:
     username: postgres
     password: postgres
     database: tasker_db
-    existingSecret: ""
   primary:
     persistence:
       enabled: true
       storageClass: "standard"
       size: 1Gi
-      accessModes:
-        - ReadWriteOnce
   metrics:
     enabled: true
     serviceMonitor:
       enabled: true
-      interval: 15s
 monitoring:
   enabled: true
   serviceMonitor:

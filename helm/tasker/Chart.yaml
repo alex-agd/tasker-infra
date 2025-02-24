@@ -10,6 +10,6 @@ maintainers:
     email: "aliaksei.dalhapolau@gmail.com"
 dependencies:
   - name: postgresql
-    version: "12.x.x"
+    version: "12.8.2"
     repository: "https://charts.bitnami.com/bitnami"
     condition: postgresql.enabled
