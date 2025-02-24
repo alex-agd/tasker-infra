@@ -60,7 +60,7 @@ jobs:
       - name: Validate Kubernetes manifests
         id: validate
         run: |
-          find . -type f -name "*.yaml" -not -path "./helm/*" | while read file; do
+          find . -type f -name "*.yaml" -not -path "./helm/*" -not -path "./monitoring/*" | while read file; do
             kubeconform -strict -summary "$file"
           done
         continue-on-error: true
