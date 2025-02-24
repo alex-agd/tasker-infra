@@ -15,9 +15,6 @@ spec:
     metadata:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        {{- with .Values.podAnnotations }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
       labels:
         {{- include "tasker-app.selectorLabels" . | nindent 8 }}
     spec:
@@ -29,35 +26,36 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: 8080
-              protocol: TCP
-          volumeMounts:
-            - name: config-volume
-              mountPath: /app/config
           env:
-            - name: SPRING_DATASOURCE_USERNAME
+            - name: SPRING_CONFIG_LOCATION
+              value: file:/config/application.yml
+            - name: DB_USER
               valueFrom:
                 secretKeyRef:
                   name: {{ include "tasker-app.fullname" . }}
                   key: DB_USERNAME
-            - name: SPRING_DATASOURCE_PASSWORD
+            - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "tasker-app.fullname" . }}
                   key: DB_PASSWORD
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
           livenessProbe:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: config-volume
+        - name: config
           configMap:
             name: {{ include "tasker-app.fullname" . }}-config 

@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: tasker-config
-  namespace: { { .Release.Namespace } }
+  name: {{ include "tasker-app.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
 data:
   application.yml: |
     spring:
       datasource:
-        url: jdbc:postgresql://{{ .Values.database.host }}:5432/{{ .Values.database.name }}
+        url: jdbc:postgresql://{{ include "tasker-app.fullname" . }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
         username: ${DB_USER}
         password: ${DB_PASSWORD}
     management:
