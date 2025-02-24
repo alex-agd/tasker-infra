@@ -53,9 +53,14 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1.8.0
 
-      - name: Install prometheus-operator CRDs
+      - name: Install CRDs
         run: |
+          # Install Prometheus Operator CRDs
           kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+
+          # Install ArgoCD CRDs
+          kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/application-crd.yaml
+          kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/appproject-crd.yaml
 
       - name: Validate Kubernetes manifests
         id: validate
@@ -72,6 +77,7 @@ jobs:
           if [[ -f ./monitoring/prometheus-rules/tasker-alerts.yaml ]]; then
             kubectl apply --dry-run=client -f ./monitoring/prometheus-rules/tasker-alerts.yaml
           fi
+
           # Validate ArgoCD Application
           if [[ -f ./argocd/applications/tasker.yaml ]]; then
             kubectl apply --dry-run=client -f ./argocd/applications/tasker.yaml
