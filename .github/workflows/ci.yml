@@ -28,7 +28,7 @@ jobs:
 
       - name: Add helm repos
         run: |
-          helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
+          helm repo add bitnami oci://registry-1.docker.io/bitnamicharts
           helm repo update
 
       - name: Validate Helm Chart
