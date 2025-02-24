@@ -26,6 +26,11 @@ jobs:
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
 
+      - name: Add helm repos
+        run: |
+          helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
+          helm repo update
+
       - name: Validate Helm Chart
         run: |
           cd helm/tasker
