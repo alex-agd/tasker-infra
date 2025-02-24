@@ -3,18 +3,17 @@ kind: PrometheusRule
 metadata:
   name: tasker-alerts
   namespace: monitoring
+  labels:
+    release: prometheus
 spec:
   groups:
     - name: tasker
       rules:
         - alert: HighErrorRate
-          expr: |
-            sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) 
-            / 
-            sum(rate(http_server_requests_seconds_count[5m])) * 100 > 5
+          expr: sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count[5m])) > 0.1
           for: 5m
           labels:
             severity: critical
           annotations:
-            summary: High HTTP error rate
-            description: Error rate is {{ $value }}% for the last 5 minutes
+            description: "Error rate is above 10% for 5 minutes"
+            summary: "High error rate detected"
