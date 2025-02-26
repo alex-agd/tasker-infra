@@ -56,9 +56,9 @@ postgresql:
     serviceMonitor:
       enabled: true
 monitoring:
-  enabled: true
+  enabled: false
   serviceMonitor:
-    enabled: true
+    enabled: false
     interval: 15s
     scrapeTimeout: 14s
     namespace: monitoring
