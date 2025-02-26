@@ -23,8 +23,9 @@ jobs:
 
       - name: Add bitnami repo
         run: |
-          helm repo add bitnami https://vmware-tanzu.github.io/helm-charts --force-update
+          helm repo add bitnami https://bitnami.techfreak.ch/bitnami --force-update
           helm repo update
+          helm repo list
 
       - name: Validate Helm Chart
         run: |
