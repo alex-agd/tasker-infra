@@ -11,5 +11,5 @@ maintainers:
 dependencies:
   - name: postgresql
     version: "12.8.2"
-    repository: "https://charts.bitnami.com/bitnami"
+    repository: "https://vmware-tanzu.github.io/helm-charts"
     condition: postgresql.enabled
