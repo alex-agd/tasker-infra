@@ -24,7 +24,7 @@ jobs:
       - name: Add bitnami repo
         run: |
           helm repo remove bitnami || true 
-          helm repo add bitnami oci://registry-1.docker.io/bitnamicharts
+          helm repo add bitnami vmware-tanzu https://vmware-tanzu.github.io/helm-charts
           helm repo add bitnami https://charts.bitnami.com/bitnami --force-update
           helm repo update
 
