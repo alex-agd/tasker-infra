@@ -49,7 +49,7 @@ postgresql:
   primary:
     persistence:
       enabled: true
-      storageClass: "standard"
+      storageClass: "tasker-postgresql-pvc"
       size: 1Gi
   metrics:
     enabled: true
