@@ -23,9 +23,9 @@ jobs:
 
       - name: Add bitnami repo
         run: |
-          helm repo add bitnami https://bitnami.techfreak.ch/bitnami --force-update
+          helm repo remove bitnami || true 
+          helm repo add bitnami oci://registry-1.docker.io/bitnamicharts
           helm repo update
-          helm repo list
 
       - name: Validate Helm Chart
         run: |
