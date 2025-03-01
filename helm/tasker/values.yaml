@@ -51,6 +51,15 @@ postgresql:
       enabled: true
       existingClaim: "tasker-postgresql-pvc"
       size: 1Gi
+  image:
+    debug: true
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
   metrics:
     enabled: false
     serviceMonitor:

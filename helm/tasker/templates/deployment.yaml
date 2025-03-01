@@ -24,6 +24,26 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
+      initContainers:
+        - name: wait-for-db
+          image: postgres:14-alpine
+          command: ['sh', '-c', 
+            'until pg_isready -h {{ include "tasker-app.fullname" . }}-postgresql -p 5432 -U ${DB_USER}; 
+            do echo "Waiting for database to be ready..."; 
+            sleep 2; 
+            done;']
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tasker-app.fullname" . }}
+                  key: DB_USERNAME
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tasker-app.fullname" . }}
+                  key: DB_PASSWORD
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
