@@ -71,6 +71,7 @@ data:
           connectionTimeout: 30000
           maximumPoolSize: 10
           minimum-idle: 2
+          connection-test-query: SELECT 1
       flyway:
         url: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
         user: ${DB_USER}
