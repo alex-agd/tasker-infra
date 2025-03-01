@@ -11,6 +11,9 @@ data:
         username: ${DB_USER}
         password: ${DB_PASSWORD}
         driver-class-name: org.postgresql.Driver
+        hikari:
+          connectionTimeout: 20000
+          maximumPoolSize: 5
       flyway:
         url: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
         user: ${DB_USER}
@@ -21,13 +24,15 @@ data:
         properties:
           hibernate:
             dialect: org.hibernate.dialect.PostgreSQLDialect
+            format_sql: true
+            connection:
+              provider_class: org.hibernate.hikaricp.internal.HikariCPConnectionProvider
         hibernate:
           ddl-auto: validate
         database-platform: org.hibernate.dialect.PostgreSQLDialect
         database: postgresql
+        open-in-view: false
         show-sql: true
-      autoconfigure:
-        exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
     management:
       endpoints:
         web:
@@ -40,3 +45,4 @@ data:
         com.zaxxer.hikari: DEBUG
         org.hibernate: DEBUG
         org.hibernate.SQL: DEBUG
+        org.hibernate.type.descriptor.sql: TRACE

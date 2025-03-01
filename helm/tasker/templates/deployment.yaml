@@ -34,7 +34,8 @@ spec:
             do echo "Waiting for database to be ready..."; 
             sleep 2; 
             done;
-            echo "PostgreSQL is ready!";']
+            echo "PostgreSQL is ready!";
+            psql -h {{ .Release.Name }}-postgresql -U ${DB_USER} -d {{ .Values.postgresql.auth.database }} -c "SELECT version();" || echo "Failed to execute query";']
           env:
             - name: DB_USER
               valueFrom:
@@ -69,6 +70,16 @@ spec:
               value: org.hibernate.dialect.PostgreSQLDialect
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
               value: validate
+            - name: SPRING_JPA_SHOW_SQL
+              value: "true"
+            - name: SPRING_JPA_OPEN_IN_VIEW
+              value: "false"
+            - name: SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT
+              value: "20000"
+            - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+              value: "5"
+            - name: HIBERNATE_DIALECT
+              value: org.hibernate.dialect.PostgreSQLDialect
           ports:
             - name: http
               containerPort: 8080
