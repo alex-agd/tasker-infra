@@ -63,6 +63,12 @@ spec:
                 secretKeyRef:
                   name: {{ include "tasker-app.fullname" . }}
                   key: DB_PASSWORD
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
+            - name: SPRING_JPA_DATABASE_PLATFORM
+              value: org.hibernate.dialect.PostgreSQLDialect
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: validate
           ports:
             - name: http
               containerPort: 8080

@@ -17,6 +17,17 @@ data:
         password: ${DB_PASSWORD}
         baseline-on-migrate: true
         enabled: true
+      jpa:
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+        hibernate:
+          ddl-auto: validate
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+        database: postgresql
+        show-sql: true
+      autoconfigure:
+        exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
     management:
       endpoints:
         web:
@@ -27,3 +38,5 @@ data:
         org.springframework.jdbc: DEBUG
         org.flywaydb: DEBUG
         com.zaxxer.hikari: DEBUG
+        org.hibernate: DEBUG
+        org.hibernate.SQL: DEBUG
