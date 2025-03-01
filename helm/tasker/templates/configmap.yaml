@@ -7,12 +7,12 @@ data:
   application.yml: |
     spring:
       datasource:
-        url: jdbc:postgresql://{{ include "tasker-app.fullname" . }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
+        url: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
         username: ${DB_USER}
         password: ${DB_PASSWORD}
         driver-class-name: org.postgresql.Driver
       flyway:
-        url: jdbc:postgresql://{{ include "tasker-app.fullname" . }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
+        url: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
         user: ${DB_USER}
         password: ${DB_PASSWORD}
         baseline-on-migrate: true
