@@ -6,6 +6,61 @@ metadata:
 data:
   application.yml: |
     spring:
+      profiles:
+        active: ${SPRING_PROFILES_ACTIVE:prod}
+      jpa:
+        properties:
+          hibernate:
+            format_sql: true
+            globally_quoted_identifiers: true
+        hibernate:
+          ddl-auto: validate
+        open-in-view: false
+        show-sql: ${SHOW_SQL:true}
+      main:
+        allow-bean-definition-overriding: true
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,metrics,prometheus
+    logging:
+      level:
+        org.springframework.jdbc: ${LOG_LEVEL:INFO}
+        org.flywaydb: ${LOG_LEVEL:INFO}
+        com.zaxxer.hikari: ${LOG_LEVEL:INFO}
+        org.hibernate: ${LOG_LEVEL:INFO}
+        org.hibernate.SQL: ${SQL_LOG_LEVEL:INFO}
+        org.hibernate.type.descriptor.sql: ${SQL_PARAM_LOG_LEVEL:INFO}
+        org.springframework.boot.autoconfigure: ${LOG_LEVEL:INFO}
+
+  application-dev.yml: |
+    spring:
+      datasource:
+        url: jdbc:postgresql://localhost:5432/tasker_db
+        username: postgres
+        password: postgres
+        driver-class-name: org.postgresql.Driver
+        type: com.zaxxer.hikari.HikariDataSource
+        hikari:
+          connectionTimeout: 30000
+          maximumPoolSize: 10
+          minimum-idle: 2
+      flyway:
+        url: jdbc:postgresql://localhost:5432/tasker_db
+        user: postgres
+        password: postgres
+        baseline-on-migrate: true
+        enabled: true
+      jpa:
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+        database: postgresql
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  application-prod.yml: |
+    spring:
       datasource:
         url: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
         username: ${DB_USER}
@@ -23,34 +78,11 @@ data:
         baseline-on-migrate: true
         enabled: true
       jpa:
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+        database: postgresql
         properties:
           hibernate:
             dialect: org.hibernate.dialect.PostgreSQLDialect
-            format_sql: true
-            globally_quoted_identifiers: true
             connection:
-              url: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
               provider_class: org.hibernate.hikaricp.internal.HikariCPConnectionProvider
               driver_class: org.postgresql.Driver
-        hibernate:
-          ddl-auto: validate
-        database-platform: org.hibernate.dialect.PostgreSQLDialect
-        database: postgresql
-        open-in-view: false
-        show-sql: true
-      main:
-        allow-bean-definition-overriding: true
-    management:
-      endpoints:
-        web:
-          exposure:
-            include: health,metrics,prometheus
-    logging:
-      level:
-        org.springframework.jdbc: DEBUG
-        org.flywaydb: DEBUG
-        com.zaxxer.hikari: DEBUG
-        org.hibernate: DEBUG
-        org.hibernate.SQL: DEBUG
-        org.hibernate.type.descriptor.sql: TRACE
-        org.springframework.boot.autoconfigure: DEBUG

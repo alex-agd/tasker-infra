@@ -98,4 +98,8 @@ readinessProbe:
   periodSeconds: 10
 config:
   SPRING_PROFILES_ACTIVE: prod
+  LOG_LEVEL: INFO
+  SQL_LOG_LEVEL: INFO
+  SQL_PARAM_LOG_LEVEL: INFO
+  SHOW_SQL: "true"
   SPRING_DATASOURCE_URL: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/tasker_db

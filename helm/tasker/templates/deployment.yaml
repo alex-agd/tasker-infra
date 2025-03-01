@@ -53,7 +53,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: SPRING_CONFIG_LOCATION
-              value: file:/config/application.yml
+              value: file:/config/application.yml,file:/config/application-{{ .Values.config.SPRING_PROFILES_ACTIVE }}.yml
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.config.SPRING_PROFILES_ACTIVE }}
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -64,27 +66,14 @@ spec:
                 secretKeyRef:
                   name: {{ include "tasker-app.fullname" . }}
                   key: DB_PASSWORD
-            - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
-            - name: SPRING_JPA_DATABASE_PLATFORM
-              value: org.hibernate.dialect.PostgreSQLDialect
-            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
-              value: validate
-            - name: SPRING_JPA_SHOW_SQL
-              value: "true"
-            - name: SPRING_JPA_OPEN_IN_VIEW
-              value: "false"
-            - name: SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT
-              value: "20000"
-            - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
-              value: "5"
-            - name: HIBERNATE_DIALECT
-              value: org.hibernate.dialect.PostgreSQLDialect
-            - name: "JAVA_TOOL_OPTIONS"
-              value: "-Dspring.datasource.url=jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
-                      -Dhibernate.connection.url=jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
-                      -Djavax.persistence.jdbc.url=jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
-                      -Dspring.jpa.properties.hibernate.connection.url=jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}"
+            - name: LOG_LEVEL
+              value: {{ .Values.config.LOG_LEVEL | default "INFO" }}
+            - name: SQL_LOG_LEVEL
+              value: {{ .Values.config.SQL_LOG_LEVEL | default "INFO" }}
+            - name: SQL_PARAM_LOG_LEVEL
+              value: {{ .Values.config.SQL_PARAM_LOG_LEVEL | default "INFO" }}
+            - name: SHOW_SQL
+              value: "{{ .Values.config.SHOW_SQL | default "true" }}"
           ports:
             - name: http
               containerPort: 8080
@@ -122,6 +111,8 @@ spec:
             items:
               - key: application.yml
                 path: application.yml
+              - key: application-{{ .Values.config.SPRING_PROFILES_ACTIVE }}.yml
+                path: application-{{ .Values.config.SPRING_PROFILES_ACTIVE }}.yml
   strategy:
     type: RollingUpdate
     rollingUpdate:
