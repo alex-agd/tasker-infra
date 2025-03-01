@@ -6,7 +6,7 @@ labels:
   app.kubernetes.io/part-of: tasker-platform
 image:
   repository: ghcr.io/alex-agd/tasker_app_backend
-  tag: "1a8fa8907d29f92a5c9ac6eba9fc800c7829ab47"
+  tag: "cc6c987bdba72d00f406904a005fdfc9d11e897d"
   pullPolicy: IfNotPresent
   pullSecrets: []
 podAnnotations: {}
