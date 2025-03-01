@@ -10,6 +10,10 @@ data:
         url: jdbc:postgresql://{{ include "tasker-app.fullname" . }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
         username: ${DB_USER}
         password: ${DB_PASSWORD}
+      flyway:
+        url: jdbc:postgresql://{{ include "tasker-app.fullname" . }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
+        user: ${DB_USER}
+        password: ${DB_PASSWORD}
     management:
       endpoints:
         web:

@@ -67,6 +67,15 @@ jobs:
           kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/application-crd.yaml
           kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/appproject-crd.yaml
 
+      - name: Test database connection
+        run: |
+          # Install Helm chart in test mode
+          helm install --dry-run --debug tasker-test ./helm/tasker \
+            --set postgresql.enabled=true \
+            --set postgresql.auth.username=postgres \
+            --set postgresql.auth.password=postgres \
+            --set postgresql.auth.database=tasker_db
+
       - name: Validate Kubernetes manifests
         id: validate
         run: |
