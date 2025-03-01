@@ -80,6 +80,11 @@ spec:
               value: "5"
             - name: HIBERNATE_DIALECT
               value: org.hibernate.dialect.PostgreSQLDialect
+            - name: "JAVA_TOOL_OPTIONS"
+              value: "-Dspring.datasource.url=jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
+                      -Dhibernate.connection.url=jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
+                      -Djavax.persistence.jdbc.url=jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
+                      -Dspring.jpa.properties.hibernate.connection.url=jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}"
           ports:
             - name: http
               containerPort: 8080
