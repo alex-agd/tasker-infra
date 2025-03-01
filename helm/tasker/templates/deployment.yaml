@@ -26,16 +26,15 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
 
       initContainers:
-        - name: debug-services
-          image: bitnami/kubectl:latest
-          command: ['sh', '-c', 'kubectl get svc -n {{ .Release.Namespace }} | grep postgresql && echo "DB Service found"']
         - name: wait-for-db
           image: postgres:14-alpine
           command: ['sh', '-c', 
-            'until pg_isready -h {{ .Release.Name }}-postgresql -p 5432 -U ${DB_USER}; 
+            'echo "Attempting to connect to PostgreSQL at {{ .Release.Name }}-postgresql:5432";
+            until pg_isready -h {{ .Release.Name }}-postgresql -p 5432 -U ${DB_USER}; 
             do echo "Waiting for database to be ready..."; 
             sleep 2; 
-            done;']
+            done;
+            echo "PostgreSQL is ready!";']
           env:
             - name: DB_USER
               valueFrom:
