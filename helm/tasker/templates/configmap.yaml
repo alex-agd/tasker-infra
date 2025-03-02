@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: {{ include "tasker-app.fullname" . }}-config
   namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
 data:
   application.yml: |
     spring:
@@ -24,6 +26,15 @@ data:
         web:
           exposure:
             include: health,metrics,prometheus
+      endpoint:
+        prometheus:
+          enabled: true
+      prometheus:
+        metrics:
+          export:
+            enabled: true
+      security:
+        enabled: false
     logging:
       level:
         org.springframework.jdbc: ${LOG_LEVEL:INFO}
@@ -62,7 +73,7 @@ data:
   application-prod.yml: |
     spring:
       datasource:
-        url: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
+        url: {{ .Values.config.SPRING_DATASOURCE_URL }}
         username: ${DB_USER}
         password: ${DB_PASSWORD}
         driver-class-name: org.postgresql.Driver
@@ -73,7 +84,7 @@ data:
           minimum-idle: 2
           connection-test-query: SELECT 1
       flyway:
-        url: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
+        url: {{ .Values.config.SPRING_DATASOURCE_URL }}
         user: ${DB_USER}
         password: ${DB_PASSWORD}
         baseline-on-migrate: true
