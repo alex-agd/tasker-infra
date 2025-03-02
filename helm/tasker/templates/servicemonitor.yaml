@@ -22,5 +22,6 @@ spec:
           action: keep
   selector:
     matchLabels:
-      {{- include "tasker-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/instance: tasker-app
+      app.kubernetes.io/name: tasker-app
 {{- end }} 
