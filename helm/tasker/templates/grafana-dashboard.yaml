@@ -1,15 +1,15 @@
-{{- if and .Values.monitoring.enabled .Values.monitoring.grafana.dashboards.enabled }}
+{{- if and .Values.monitoring.enabled .Values.monitoring.grafanaDashboards.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "tasker-app.fullname" . }}-grafana-dashboard
   labels:
+    grafana_dashboard: "1"
+    app: {{ include "tasker-app.name" . }}
     {{- include "tasker-app.labels" . | nindent 4 }}
-    grafana_dashboard: "true"
 data:
-  {{- $files := .Files }}
-  {{- range $path, $_ := .Files.Glob "dashboards/application/*.json" }}
-  {{ base $path }}: |-
-    {{- $files.Get $path | nindent 4 }}
-  {{- end }}
+  tasker-dashboard.json: |-
+{{ .Files.Get "dashboards/application/tasker-dashboard.json" | indent 4 }}
+  tasker-extended-dashboard.json: |-
+{{ tpl (.Files.Get "../../monitoring/grafana-dashboards/tasker-extended-dashboard.json") . | indent 4 }}
 {{- end }} 
