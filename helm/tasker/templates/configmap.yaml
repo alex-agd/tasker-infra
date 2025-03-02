@@ -73,7 +73,7 @@ data:
   application-prod.yml: |
     spring:
       datasource:
-        url: {{ .Values.config.SPRING_DATASOURCE_URL }}
+        url: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
         username: ${DB_USER}
         password: ${DB_PASSWORD}
         driver-class-name: org.postgresql.Driver
@@ -84,7 +84,7 @@ data:
           minimum-idle: 2
           connection-test-query: SELECT 1
       flyway:
-        url: {{ .Values.config.SPRING_DATASOURCE_URL }}
+        url: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.auth.database }}
         user: ${DB_USER}
         password: ${DB_PASSWORD}
         baseline-on-migrate: true
