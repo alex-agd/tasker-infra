@@ -21,6 +21,9 @@ spec:
         - sourceLabels: [__name__]
           regex: '(jvm|process|hikaricp|http_server|tomcat|system|logback|jdbc|application_started|application_ready|tasker_.*)'
           action: keep
+  namespaceSelector:
+    matchNames:
+      - tasker
   selector:
     matchLabels:
       {{- include "tasker-app.selectorLabels" . | nindent 6 }}
