@@ -3,9 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ include "tasker-app.fullname" . }}
-  {{- if .Values.monitoring.serviceMonitor.namespace }}
-  namespace: {{ .Values.monitoring.serviceMonitor.namespace }}
-  {{- end }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "tasker-app.labels" . | nindent 4 }}
     release: prometheus
@@ -22,9 +20,6 @@ spec:
         - sourceLabels: [__name__]
           regex: '(jvm|process|hikaricp|http_server|tomcat|system|logback|jdbc|application_started|application_ready|tasker_.*)'
           action: keep
-  namespaceSelector:
-    matchNames:
-      - tasker
   selector:
     matchLabels:
       {{- include "tasker-app.selectorLabels" . | nindent 6 }}
