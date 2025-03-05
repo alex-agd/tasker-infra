@@ -1,0 +1,136 @@
+name: Тестирование производительности
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master]
+  workflow_dispatch: # Возможность ручного запуска
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          curl -L https://github.com/grafana/k6/releases/download/v0.42.0/k6-v0.42.0-linux-amd64.tar.gz | tar xz
+          sudo mv k6-v0.42.0-linux-amd64/k6 /usr/local/bin/
+
+      - name: Set up minikube
+        uses: medyagh/setup-minikube@latest
+        with:
+          kubernetes-version: "v1.25.3"
+
+      - name: Deploy test environment
+        run: |
+          # Создаем пространство имен и применяем конфигурацию
+          kubectl create namespace tasker-test
+          kubectl apply -f performance-tests/test-deployment.yaml
+          echo "Ожидание запуска тестового окружения..."
+          kubectl wait --for=condition=available --timeout=300s deployment/tasker-app-test -n tasker-test
+
+          # Задаем тестовый домен в соответствии с конфигурацией Nginx
+          echo "TASKER_URL=http://tasker-test.k8s-5.sa" >> $GITHUB_ENV
+
+          # Настройка для локального CI - добавляем запись в /etc/hosts
+          echo "127.0.0.1 tasker-test.k8s-5.sa" | sudo tee -a /etc/hosts
+          echo "Настроен локальный домен для тестирования: tasker-test.k8s-5.sa"
+
+          # Настраиваем port-forwarding для локального тестирования
+          # Используем порт 30001, так как Nginx настроен на проксирование к порту 30001
+          kubectl port-forward -n tasker-test svc/tasker-app-test 30001:8080 &
+          PORT_FORWARD_PID=$!
+          echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> $GITHUB_ENV
+
+          # Даем время на подготовку port-forwarding
+          sleep 5
+
+          # Проверяем доступность сервиса
+          echo "Проверяем доступность через домен..."
+          curl -s http://tasker-test.k8s-5.sa:30001/actuator/health || echo "Доступ через домен не работает, проверяем localhost..."
+          curl -s http://localhost:30001/actuator/health || echo "Сервис еще не доступен через localhost, продолжаем..."
+
+      - name: Run performance tests
+        run: |
+          mkdir -p performance-results
+
+          # Запускаем тесты с использованием настроенного домена
+          # K6 будет использовать BASE_URL из tasker-test.k8s-5.sa
+          k6 run --out json=performance-results/results.json performance-tests/load-test.js
+
+          # Останавливаем port-forwarding
+          if [ -n "$PORT_FORWARD_PID" ]; then
+            kill $PORT_FORWARD_PID || true
+          fi
+
+      - name: Analyze performance results
+        run: |
+          DURATION_P95=$(cat performance-results/results.json | jq '.metrics.http_req_duration.values.p95')
+          REQ_RATE=$(cat performance-results/results.json | jq '.metrics.http_reqs.values.rate')
+          ERROR_RATE=$(cat performance-results/results.json | jq '.metrics.http_req_failed.values.rate')
+
+          echo "DURATION_P95=$DURATION_P95" >> $GITHUB_ENV
+          echo "REQ_RATE=$REQ_RATE" >> $GITHUB_ENV
+          echo "ERROR_RATE=$ERROR_RATE" >> $GITHUB_ENV
+
+          echo "### Результаты тестирования производительности" > performance-results/summary.md
+          echo "- 95% запросов обработаны за: ${DURATION_P95}ms" >> performance-results/summary.md
+          echo "- Скорость запросов: ${REQ_RATE} req/s" >> performance-results/summary.md
+          echo "- Процент ошибок: ${ERROR_RATE}%" >> performance-results/summary.md
+
+          # Сравнение с базовыми показателями
+          if (( $(echo "$DURATION_P95 > 500" | bc -l) )); then
+            echo "⚠️ Предупреждение: Время ответа превысило 500ms" >> performance-results/summary.md
+          else
+            echo "✅ Время ответа в пределах нормы" >> performance-results/summary.md
+          fi
+
+          if (( $(echo "$ERROR_RATE > 0.01" | bc -l) )); then
+            echo "⚠️ Предупреждение: Процент ошибок выше 1%" >> performance-results/summary.md
+          else
+            echo "✅ Процент ошибок в пределах нормы" >> performance-results/summary.md
+          fi
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: performance-results/
+
+      - name: Post results as PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('performance-results/summary.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+      - name: Send performance report to Slack
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Отчет о производительности"
+          SLACK_MESSAGE: "Результаты тестирования производительности:\n95% запросов: ${{ env.DURATION_P95 }}ms\nПроизводительность: ${{ env.REQ_RATE }} req/s\nПроцент ошибок: ${{ env.ERROR_RATE }}%"
+          SLACK_COLOR: ${{ env.ERROR_RATE > 0.01 || env.DURATION_P95 > 500 && 'danger' || 'good' }}
+
+      - name: Clean up test environment
+        if: always()
+        run: |
+          # Останавливаем port-forwarding если он ещё активен
+          if [ -n "$PORT_FORWARD_PID" ]; then
+            kill $PORT_FORWARD_PID || true
+          fi
+
+          kubectl delete namespace tasker-test
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/alex-agd/tasker_app_backend

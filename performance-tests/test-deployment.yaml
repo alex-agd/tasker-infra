@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasker-app-test
+  namespace: tasker-test
+  labels:
+    app: tasker-app-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tasker-app-test
+  template:
+    metadata:
+      labels:
+        app: tasker-app-test
+    spec:
+      containers:
+        - name: tasker-app
+          image: ghcr.io/alex-agd/tasker_app_backend:latest
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "test"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:h2:mem:testdb"
+            - name: SPRING_DATASOURCE_DRIVERCLASSNAME
+              value: "org.h2.Driver"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "sa"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "password"
+            - name: SPRING_JPA_DATABASE_PLATFORM
+              value: "org.hibernate.dialect.H2Dialect"
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: "create-drop"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tasker-app-test
+  namespace: tasker-test
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: tasker-app-test
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tasker-test-ingress
+  namespace: tasker-test
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: tasker-test.k8s-5.sa
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: tasker-app-test
+                port:
+                  number: 8080
