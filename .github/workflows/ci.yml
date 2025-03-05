@@ -67,15 +67,6 @@ jobs:
           kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/application-crd.yaml
           kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/appproject-crd.yaml
 
-#      - name: Test database connection
-#        run: |
-#          # Install Helm chart in test mode
-#          helm install --dry-run --debug tasker-test ./helm/tasker \
-#            --set postgresql.enabled=true \
-#            --set postgresql.auth.username=postgres \
-#            --set postgresql.auth.password=postgres \
-#            --set postgresql.auth.database=tasker_db
-
       - name: Validate Kubernetes manifests
         id: validate
         run: |
@@ -97,21 +88,28 @@ jobs:
             kubectl apply --dry-run=client -f ./argocd/applications/tasker.yaml
           fi
 
-#      - name: Prepare notification message
-#        if: always()
-#        id: notification
+      - name: Prepare notification message
+        if: always()
+        id: notification
+        run: |
+          if [ "${{ steps.validate.outcome }}" = "success" ]; then
+            echo "message=✅ Kubernetes manifests validation passed" >> $GITHUB_OUTPUT
+          else
+            echo "message=❌ Kubernetes manifests validation failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification
+        if: always()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_MESSAGE: ${{ steps.notification.outputs.message }}
+          SLACK_TITLE: Kubernetes Manifest Validation
+          SLACK_COLOR: ${{ steps.validate.outcome == 'success' && 'good' || 'danger' }}
+
+#      - name: Trigger ArgoCD Sync
 #        run: |
-#          if [ "${{ steps.validate.outcome }}" = "success" ]; then
-#            echo "message=✅ Kubernetes manifests validation passed" >> $GITHUB_OUTPUT
-#          else
-#            echo "message=❌ Kubernetes manifests validation failed" >> $GITHUB_OUTPUT
-#          fi
-#
-#      - name: Send Slack notification
-#        if: always()
-#        uses: rtCamp/action-slack-notify@v2
-#        env:
-#          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-#          SLACK_MESSAGE: ${{ steps.notification.outputs.message }}
-#          SLACK_TITLE: Kubernetes Manifest Validation
-#          SLACK_COLOR: ${{ steps.validate.outcome == 'success' && 'good' || 'danger' }}
+#          curl -X POST https://${{ secrets.ARGOCD_SERVER }}/api/webhooks/webhook \
+#            -H "Content-Type: application/json" \
+#            -H "X-ArgoCD-Webhook-Token: ${{ secrets.ARGOCD_WEBHOOK_TOKEN }}" \
+#            -d '{"repository":{"url":"https://github.com/Alex-AGD/tasker-infra"}}'
